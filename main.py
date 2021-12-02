@@ -1,28 +1,26 @@
 import matplotlib.pyplot as plt
 
+class graph(object):
 
-def plot(time_values: object, val1: object, val2: object, val3: object) -> object:
-    """
-    this function is used to plot the values
-    :rtype: object
-    """
+    def add(values: list) -> object:
+        plt.subplot(211)
+        plt.plot(values[4], values[3], label="Abweichung " + str(values[5]))
 
-    #plt.style.use('_mpl-gallery')
+        plt.subplot(212)
+        plt.plot(values[0], values[2], label="Goal " + str(values[5]))
+        plt.plot(values[0], values[1], label="PID " + str(values[5]))
 
-    plt.subplot(211)
-    plt.plot(time, val3, label="Abweichung")
-    plt.xlabel('time (s)')
-    plt.ylabel('height (mm)')
-    plt.legend()
 
-    plt.subplot(212)
-    plt.plot(time, val1, label="PID")
-    plt.plot(time, val2, label="Goal")
-    plt.xlabel('time (s)')
-    plt.ylabel('height (mm)')
-    plt.legend()
-
-    plt.show()
+    def show():
+        plt.subplot(211)
+        plt.xlabel('time (s)')
+        plt.ylabel('height (mm)')
+        plt.legend()
+        plt.subplot(212)
+        plt.xlabel('time (s)')
+        plt.ylabel('height (mm)')
+        plt.legend()
+        plt.show()
 
 
 class PID (object):
@@ -54,9 +52,9 @@ class Simulation(object):
     def __init__(self, duration):
         self.duration = duration
 
-    def simulate(self, entry, pid, controller_max, disturbance) -> object:
-        time_, value_, goal_, delta_ = [], [], [], []
-        old, outcome = 0, 0
+    def simulate(self, entry, pid, controller_max, disturbance, number) -> object:
+        time_, value_, goal_, delta_, delta_t_ = [], [], [], [], []
+        old, outcome, toggle = 0, 0, 0
         for i in range(self.duration):
             outcome += pid.control(i, (entry-old)) * controller_max + disturbance
             old = outcome
@@ -64,9 +62,14 @@ class Simulation(object):
             time_.append(i)
             value_.append(outcome)
             goal_.append(entry)
-            delta_.append(entry-old)
 
-        return time_, value_, goal_, delta_
+            if entry-old == 0:
+                toggle = 1
+            if toggle == 1:
+                delta_.append(entry-old)
+                delta_t_.append(i)
+
+        return time_, value_,  goal_, delta_, delta_t_, number
 
 
 class Track(object):
@@ -75,7 +78,17 @@ class Track(object):
 
 
 simu = Simulation(120)
-result: object = simu.simulate(1000, PID(0.05, 0, 0), 30, -20)
-time, value, goal, delta = result[0], result[1], result[2], result[3]
 
-plot(time, value, goal, delta)
+result1: object = simu.simulate(1000, PID(0.05, 0, 0), 30, -20, 0)
+result2: object = simu.simulate(1000, PID(0.1, 0, 0), 30, -20, 1)
+result3: object = simu.simulate(1000, PID(0.15, 0, 0), 30, -20, 2)
+result4: object = simu.simulate(1000, PID(20, 0, 0), 30, -20, 3)
+result5: object = simu.simulate(1000, PID(25, 0, 0), 30, -20, 4)
+
+graph.add(result1)
+graph.add(result2)
+graph.add(result3)
+graph.add(result4)
+graph.add(result5)
+
+graph.show()
